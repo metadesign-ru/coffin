@@ -176,11 +176,6 @@ class Library(DjangoLibrary):
 
         Supports the same invocation syntax as the original Django
         version, including use as a decorator.
-
-        If the function is supposed to return the registered filter
-        (by example of the superclass implementation), but has
-        registered multiple filters, a tuple of all filters is
-        returned.
         """
         def filter_function(f):
             return self._register_filter(
@@ -231,22 +226,19 @@ class Library(DjangoLibrary):
             self.jinja2_filters[name] = func
             if can_be_ported and not jinja2_only:
                 self.filters[name] = jinja2_filter_to_django(func)
-            return func
         elif filter_type == DJANGO:
             self.filters[name] = func
             if not can_be_ported and jinja2_only:
                 raise ValueError('This filter cannot be ported to Jinja2.')
             if can_be_ported:
                 self.jinja2_filters[name] = django_filter_to_jinja2(func)
-            return func
         else:
             django_func = jinja2_filter_to_django(func)
             jinja2_func = django_filter_to_jinja2(func)
             if jinja2_only:
                 self.jinja2_filters[name] = jinja2_func
-                return jinja2_func
             else:
                 # register the filter with both engines
                 self.filters[name] = django_func
                 self.jinja2_filters[name] = jinja2_func
-                return (django_func, jinja2_func)
+        return func
